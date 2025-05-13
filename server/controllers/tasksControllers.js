@@ -11,6 +11,8 @@ exports.getAll = async (req,res) => {
 };
 
 exports.create = async(req, res)=> {
+    console.log('⮕ POST /tasks body:', req.body);
+
     try{
         const task = new Task(req.body);
         res.status(201).json(await task.save());

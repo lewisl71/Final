@@ -1,72 +1,88 @@
-import logo from './logo.svg';
-
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import TaskForm from './TaskForm';
+import TaskCalendar from './TaskCalendar';
 import {
-  fetchTasks, createTask,
-  updateTask, deleteTask
+  fetchTasks,
+  createTask,
+  updateTask,
+  deleteTask
 } from './services/taskService';
-
-import './App.css';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
 
-  useEffect(() => { load(); }, []);
-  const load = async () => {
-    const res = await fetchTasks();
-    setTasks(res.data);
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      const { data } = await fetchTasks();
+      setTasks(data);
+    } catch (err) {
+      console.error('Failed to load tasks:', err);
+    }
   };
 
-  const add = async e => {
-    e.preventDefault();
-    if (!title) return;
-    await createTask({ title });
-    setTitle('');
-    load();
+  const addTask = async (payload) => {
+    
+      const { data } = await createTask(payload);
+      setTasks(ts => [data, ...ts]);
+      return data;
+    
   };
 
-  const toggle = async t => {
-    await updateTask(t._id, { completed: !t.completed });
-    load();
+  const toggleTask = async (task) => {
+    try {
+      await updateTask(task._id, { completed: !task.completed });
+      loadTasks();
+    } catch (err) {
+      console.error('Failed to update task:', err);
+    }
   };
 
-  const remove = async id => {
-    await deleteTask(id);
-    load();
+  const deleteTaskById = async (id) => {
+    try {
+      await deleteTask(id);
+      setTasks(ts => ts.filter(t => t._id !== id));
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+    }
   };
 
   return (
     <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-3xl mb-4">My Tasks</h1>
-      <form onSubmit={add} className="flex mb-6">
-        <input
-          value={title}
-          onChange={e=>setTitle(e.target.value)}
-          placeholder="New task…" className="flex-1 border px-3 py-2 rounded-l"
-        />
-        <button className="bg-blue-600 text-white px-4 rounded-r">
-          Add
-        </button>
-      </form>
-      <ul>
+      <h1 className="text-3xl font-bold mb-4">My Tasks</h1>
+
+      <TaskForm onNewTask={addTask} />
+
+      <ul className="mb-8">
         {tasks.map(t => (
-          <li key={t._id} className="flex justify-between py-2 border-b">
-            <span
-              onClick={()=>toggle(t)}
-              className={t.completed ? 'line-through text-gray-500' : ''}
+          <li key={t._id} className="flex justify-between items-center py-2 border-b">
+            <div
+              onClick={() => toggleTask(t)}
+              className="cursor-pointer flex items-center space-x-2"
             >
-              {t.title}
-            </span>
-            <button onClick={()=>remove(t._id)} className="text-red-600">
+              <span className={t.completed ? 'line-through text-gray-500' : ''}>
+                {t.title}
+              </span>
+              {t.dueDate && (
+                <small className="text-sm text-gray-600">
+                  (due {new Date(t.dueDate).toLocaleDateString()})
+                </small>
+              )}
+            </div>
+            <button
+              onClick={() => deleteTaskById(t._id)}
+              className="text-red-600 hover:text-red-800"
+            >
               Delete
             </button>
           </li>
         ))}
       </ul>
+
+      <TaskCalendar tasks={tasks} onNewTask={addTask} />
     </div>
   );
 }
-
-
