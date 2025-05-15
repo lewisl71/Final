@@ -1,88 +1,95 @@
+
 import React, { useState, useEffect } from 'react';
+import LoginPage from './LoginPage';
 import TaskForm from './TaskForm';
 import TaskCalendar from './TaskCalendar';
-import {
-  fetchTasks,
-  createTask,
-  updateTask,
-  deleteTask
-} from './services/taskService';
 
-export default function App() {
+function App() {
   const [tasks, setTasks] = useState([]);
+  const [user, setUser] = useState(null);
+  const [view, setView] = useState('login'); // 'login', 'tasks', 'calendar'
 
   useEffect(() => {
-    loadTasks();
-  }, []);
+    if (user) {
+      fetchTasks();
+    }
+  }, [user]);
 
-  const loadTasks = async () => {
+  const fetchTasks = async () => {
     try {
-      const { data } = await fetchTasks();
+      const response = await fetch('http://localhost:5001/api/tasks');
+      const data = await response.json();
       setTasks(data);
-    } catch (err) {
-      console.error('Failed to load tasks:', err);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
     }
   };
 
-  const addTask = async (payload) => {
-    
-      const { data } = await createTask(payload);
-      setTasks(ts => [data, ...ts]);
-      return data;
-    
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setView('tasks');
   };
 
-  const toggleTask = async (task) => {
+  const handleLogout = () => {
+    setUser(null);
+    setTasks([]);
+    setView('login');
+  };
+
+  const handleAddTask = (newTask) => {
+    setTasks((prev) => [...prev, newTask]);
+  };
+
+  const handleDeleteTask = async (id) => {
     try {
-      await updateTask(task._id, { completed: !task.completed });
-      loadTasks();
-    } catch (err) {
-      console.error('Failed to update task:', err);
+      await fetch(`http://localhost:5001/api/tasks/${id}`, { method: 'DELETE' });
+      setTasks((prev) => prev.filter(task => task._id !== id));
+    } catch (error) {
+      console.error('Error deleting task:', error);
     }
   };
 
-  const deleteTaskById = async (id) => {
+  const handleDateClick = async (info) => {
+    const title = prompt('Enter task title:');
+    if (!title) return;
+
+    const newTask = {
+      title,
+      dueDate: info.dateStr,
+    };
+
     try {
-      await deleteTask(id);
-      setTasks(ts => ts.filter(t => t._id !== id));
-    } catch (err) {
-      console.error('Failed to delete task:', err);
+      const response = await fetch('http://localhost:5001/api/tasks', {
+        method: 'POST',
+        body: JSON.stringify(newTask),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      setTasks((prev) => [...prev, data]); // Add task to state in real-time
+    } catch (error) {
+      console.error('Error creating task from calendar:', error);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">My Tasks</h1>
-
-      <TaskForm onNewTask={addTask} />
-
-      <ul className="mb-8">
-        {tasks.map(t => (
-          <li key={t._id} className="flex justify-between items-center py-2 border-b">
-            <div
-              onClick={() => toggleTask(t)}
-              className="cursor-pointer flex items-center space-x-2"
-            >
-              <span className={t.completed ? 'line-through text-gray-500' : ''}>
-                {t.title}
-              </span>
-              {t.dueDate && (
-                <small className="text-sm text-gray-600">
-                  (due {new Date(t.dueDate).toLocaleDateString()})
-                </small>
-              )}
-            </div>
-            <button
-              onClick={() => deleteTaskById(t._id)}
-              className="text-red-600 hover:text-red-800"
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <TaskCalendar tasks={tasks} onNewTask={addTask} />
+    <div>
+      {view === 'login' && <LoginPage onLogin={handleLogin} />}
+      {view === 'tasks' && (
+        <div>
+          <button onClick={() => setView('calendar')}>Go to Calendar</button>
+          <button onClick={handleLogout}>Logout</button>
+          <TaskForm tasks={tasks} onAdd={handleAddTask}  onDelete={handleDeleteTask}/>
+        </div>
+      )}
+      {view === 'calendar' && (
+        <div>
+          <button onClick={() => setView('tasks')}>Back to Tasks</button>
+          <button onClick={handleLogout}>Logout</button>
+          <TaskCalendar tasks={tasks} onDelete={handleDeleteTask} onDateClick={handleDateClick} />
+        </div>
+      )}
     </div>
   );
 }
+
+export default App;

@@ -1,36 +1,31 @@
+import React from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction'; // ← import interaction plugin
+import interactionPlugin from '@fullcalendar/interaction';
 
-export default function TaskCalendar({ tasks, onNewTask }) {
-  const handleDateClick = async (arg) => {
-    const title = prompt('Task title?');
-    if (!title) return;
-
-    const payload = { title, dueDate: arg.dateStr };
-    try {
-      await onNewTask(payload);
-    } catch (err) {
-      console.error('Calendar add failed:', err.response?.data || err.message);
-      alert('Could not add task: ' + (err.response?.data?.error || err.message));
-    }
-  };
-
-  const events = tasks
-    .filter(t => t.dueDate)
-    .map(t => ({
-      id:    t._id,
-      title: t.title,
-      date:  t.dueDate.split('T')[0],
-    }));
+export default function TaskCalendar({ tasks, onDateClick, onDelete }) {
+  const events = tasks.map((task) => ({
+    id: task._id,
+    title: task.title,
+    date: task.dueDate,
+  }));
 
   return (
-    <FullCalendar
-      plugins={[dayGridPlugin, interactionPlugin]} // ← include interactionPlugin
-      initialView="dayGridMonth"
-      events={events}
-      dateClick={handleDateClick}                // ← now recognized
-      height="auto"
-    />
+    <div className="calendar-container">
+      <FullCalendar
+        plugins={[dayGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
+        events={events}
+        timeZone="Etc/UTC"
+        dateClick={onDateClick} // Fix for adding tasks on calendar
+        eventClick={(info) => {
+          const confirmDelete = window.confirm(`Delete task: ${info.event.title}?`);
+          if (confirmDelete) {
+            onDelete(info.event.id);
+          }
+        }}
+      />
+    </div>
   );
 }
+
