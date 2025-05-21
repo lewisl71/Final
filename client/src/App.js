@@ -49,6 +49,12 @@ function App() {
     }
   };
 
+  const handleUpdateTask = (updated) => {
+    setTasks((prev) =>
+      prev.map((t) => (t._id === updated._id ? updated : t))
+    );
+  };
+
   const handleDateClick = async (info) => {
     const title = prompt('Enter task title:');
     if (!title) return;
@@ -78,7 +84,7 @@ function App() {
         <div>
           <button onClick={() => setView('calendar')}>Go to Calendar</button>
           <button onClick={handleLogout}>Logout</button>
-          <TaskForm tasks={tasks} onAdd={handleAddTask}  onDelete={handleDeleteTask}/>
+          <TaskForm tasks={tasks} onAdd={handleAddTask}  onDelete={handleDeleteTask} onUpdate={handleUpdateTask}/>
         </div>
       )}
       {view === 'calendar' && (

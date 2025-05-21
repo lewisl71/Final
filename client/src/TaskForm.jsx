@@ -1,86 +1,120 @@
-import React, { useState } from 'react';
-import { createTask, deleteTask } from './services/taskService';
+import React, { useState, useEffect } from 'react';
+import { createTask, updateTask, deleteTask, getTasks } from './services/taskService';
+import './TaskForm.css';
 
-export default function TaskForm({ tasks, onAdd, onDelete }) {
+export default function TaskForm({ onAdd, onUpdate, onDelete }) {
+  const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState('');
-  const [dueDate, setDueDate] = useState(''); // Store the selected date
+  const [dueDate, setDueDate] = useState('');
+  const [editingId, setEditingId] = useState(null);
 
-  // Handle task submission
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  const fetchAll = async () => {
+    const data = await getTasks();
+    setTasks(data);
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setDueDate('');
+    setEditingId(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !dueDate) return; // Ensure title and dueDate are provided
+    if (!title || !dueDate) return;
 
-    const dueDateObj = new Date(dueDate);
-    dueDateObj.setDate(dueDateObj.getDate()); // Add 1 day to the selected date
+    const due = new Date(dueDate);
+    due.setDate(due.getDate() + 1);
 
-    // Convert to ISO format for consistency
-    const formattedDate = dueDateObj.toISOString();
-
-    // Create the task payload
-    const payload = { title, dueDate: formattedDate };
+    const payload = { 
+      title, 
+      dueDate: due.toISOString() 
+    };
 
     try {
-      const { data } = await createTask(payload);
-      onAdd(data); // Update the tasks in App.js
-      setTitle('');
-      setDueDate('');
+      if (editingId) {
+        const updated = await updateTask(editingId, payload);
+        onUpdate(updated);
+      } else {
+        const created = await createTask(payload);
+        onAdd(created);
+      }
+      resetForm();
+      fetchAll();
     } catch (err) {
-      console.error('Failed to create task:', err);
+      console.error('Error saving task:', err);
     }
   };
 
-  // Handle task deletion
-  const handleDelete = async (id) => {
-    try {
-      await deleteTask(id); // Delete the task from the backend
-      onDelete(id); // Update the task list in App.js after deletion
-    } catch (err) {
-      console.error('Failed to delete task:', err);
-    }
+  const handleEdit = (task) => {
+    setEditingId(task._id);
+    setTitle(task.title);
+    setDueDate(task.dueDate.slice(0, 10)); // yyyy-mm-dd
   };
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return `${date.getMonth() + 1}/${date.getDate() + 1}/${date.getFullYear()}`;
+
+  const handleDeleteLocal = async (id) => {
+    await deleteTask(id);
+    onDelete(id);
+    fetchAll();
+  };
+
+  const formatDate = (iso) => {
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="flex mb-4">
+    <div className="task-form-container">
+      <h2 className="task-form-title">
+        {editingId ? 'Edit Task' : 'Add New Task'}
+      </h2>
+
+      <form onSubmit={handleSubmit} className="task-form">
         <input
           type="text"
+          placeholder="Task title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="New task…"
-          className="flex-1 border px-3 py-2 rounded-l"
+          onChange={e => setTitle(e.target.value)}
+          className="task-form-input"
         />
         <input
           type="date"
           value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="border px-3 py-2"
+          onChange={e => setDueDate(e.target.value)}
+          className="task-form-input"
         />
-        <button
-          type="submit"
-          className="bg-green-600 text-white px-4 rounded-r"
-        >
-          Add
+        <button type="submit" className="task-form-button">
+          {editingId ? 'Update Task' : 'Add Task'}
         </button>
       </form>
 
-      {}
-      <ul>
-        {tasks.map((task) => (
-          <li key={task._id} className="flex justify-between items-center">
-            <span>{task.title} - {formatDate(task.dueDate)}</span>
-            <button
-              onClick={() => handleDelete(task._id)} 
-              className="bg-red-600 text-white px-3 py-1 rounded"
-            >
-              Delete
-            </button>
+      <ul className="task-list">
+        {tasks.map(task => (
+          <li key={task._id} className="task-item">
+            <span>
+              {task.title} — {formatDate(task.dueDate)}
+            </span>
+            <div>
+              <button
+                onClick={() => handleEdit(task)}
+                className="task-edit-button"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteLocal(task._id)}
+                className="task-delete-button"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
     </div>
-  );
+);
 }
