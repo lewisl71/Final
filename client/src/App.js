@@ -1,14 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import LoginPage from './LoginPage';
 import TaskForm from './TaskForm';
 import TaskCalendar from './TaskCalendar';
-import './App.css'
+import { getTasks, createTask, deleteTask } from './services/taskService';
+import './App.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [user, setUser] = useState(null);
-  const [view, setView] = useState('login'); // 'login', 'tasks', 'calendar'
+  const [view, setView] = useState('login');
 
   useEffect(() => {
     if (user) {
@@ -18,8 +18,7 @@ function App() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('https://task-backend-n7ds.onrender.com/api/tasks');
-      const data = await response.json();
+      const data = await getTasks();
       setTasks(data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -39,12 +38,13 @@ function App() {
   };
 
   const handleAddTask = (newTask) => {
+    console.log('Adding new task:', newTask);
     setTasks((prev) => [...prev, newTask]);
   };
 
   const handleDeleteTask = async (id) => {
     try {
-      await fetch(`https://task-backend-n7ds.onrender.com/api/tasks/${id}`, { method: 'DELETE' });
+      await deleteTask(id);
       setTasks((prev) => prev.filter(task => task._id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -62,15 +62,10 @@ function App() {
       title,
       dueDate: dateStr,
     };
-  
+
     try {
-      const response = await fetch('https://task-backend-n7ds.onrender.com/api/tasks', {
-        method: 'POST',
-        body: JSON.stringify(newTask),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      setTasks((prev) => [...prev, data]);
+      const created = await createTask(newTask);
+      setTasks((prev) => [...prev, created]);
     } catch (error) {
       console.error('Error creating task from calendar:', error);
     }
@@ -80,16 +75,21 @@ function App() {
     <div>
       {view === 'login' && <LoginPage onLogin={handleLogin} />}
       {view === 'tasks' && (
-        <div className = "navbar">
-          <button onClick={() => setView('calendar')} className ="calendar-button">Go to Calendar</button>
-          <button onClick={handleLogout} className= "logout-button">Logout</button>
-          <TaskForm tasks={tasks} onAdd={handleAddTask}  onDelete={handleDeleteTask} onUpdate={handleUpdateTask}/>
+        <div className="navbar">
+          <button onClick={() => setView('calendar')} className="calendar-button">Go to Calendar</button>
+          <button onClick={handleLogout} className="logout-button">Logout</button>
+          <TaskForm
+            tasks={tasks}
+            onAdd={handleAddTask}
+            onDelete={handleDeleteTask}
+            onUpdate={handleUpdateTask}
+          />
         </div>
       )}
       {view === 'calendar' && (
-        <div className = "navbar">
-          <button onClick={() => setView('tasks')} className = "calendar-button">Back to Tasks</button>
-          <button onClick={handleLogout} className = "logout button">Logout</button>
+        <div className="navbar">
+          <button onClick={() => setView('tasks')} className="calendar-button">Back to Tasks</button>
+          <button onClick={handleLogout} className="logout-button">Logout</button>
           <TaskCalendar tasks={tasks} onDelete={handleDeleteTask} onDateClick={handleDateClick} />
         </div>
       )}
