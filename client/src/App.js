@@ -27,6 +27,7 @@ function App() {
   };
 
   const handleLogin = (userData) => {
+    console.log('handleLogin called with:', userData);
     setUser(userData);
     setView('tasks');
   };
