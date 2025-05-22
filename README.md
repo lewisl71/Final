@@ -35,3 +35,6 @@ Backend: https://task-backend-n7ds.onrender.com
    npm start
 
 # Takeaways
+This project taught me how to handle the complexeties of live deployment.
+I became better at debugging a website as well.
+Despite some small errors throughout the process, I was able to successfuly deploy a React application.
