@@ -1,112 +1,75 @@
 import React, { useState } from 'react';
-import { createTask, updateTask, deleteTask} from './services/taskService';
 import './TaskForm.css';
 
-export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
+function TaskForm({ tasks, onAdd, onDelete }) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [editingId, setEditingId] = useState(null);
-
-  const resetForm = () => {
-    setTitle('');
-    setDueDate('');
-    setEditingId(null);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !dueDate) return;
+    if (!title || !dueDate) {
+      alert('Both title and due date are required.');
+      return;
+    }
 
-    const due = new Date(dueDate);
-    due.setDate(due.getDate());
 
-    const payload = {
+    const date = new Date(dueDate);
+    date.setUTCHours(12, 0, 0, 0); // prevent date shifting due to timezone
+
+    const newTask = {
       title,
-      dueDate: due.toISOString(),
+      dueDate: date.toISOString(),
     };
 
     try {
-      if (editingId) {
-        const updated = await updateTask(editingId, payload);
-        onUpdate(updated);
-      } else {
-        const created = await createTask(payload);
-        onAdd(created);
-      }
-      resetForm();
-    } catch (err) {
-      console.error('Error saving task:', err);
+      console.log('📤Submitting task from form:', newTask);
+      const createdTask = await onAdd(newTask); // capture return if needed
+      console.log(' Task added:', createdTask);
+      setTitle('');
+      setDueDate('');
+    } catch (error) {
+      console.error(' Error saving task from form:', error);
     }
-  };
-
-  const handleEdit = (task) => {
-    setEditingId(task._id);
-    setTitle(task.title);
-    setDueDate(task.dueDate.slice(0, 10)); // yyyy-mm-dd
-  };
-
-  const handleDeleteLocal = async (id) => {
-    try {
-      await deleteTask(id);
-      onDelete(id);
-    } catch (err) {
-      console.error('Error deleting task:', err);
-    }
-  };
-
-  const formatDate = (iso) => {
-    const d = new Date(iso);
-    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
   };
 
   return (
-    <div className="task-form-container">
-      <h2 className="task-form-title">
-        {editingId ? 'Edit Task' : 'Add New Task'}
-      </h2>
-
-      <form onSubmit={handleSubmit} className="task-form">
+    <div className="task-form">
+      <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Task title"
+          placeholder="Task Title"
           value={title}
-          onChange={e => setTitle(e.target.value)}
-          className="task-form-input"
+          onChange={(e) => setTitle(e.target.value)}
         />
         <input
           type="date"
           value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
-          className="task-form-input"
+          onChange={(e) => setDueDate(e.target.value)}
         />
-        <button type="submit" className="task-form-button">
-          {editingId ? 'Update Task' : 'Add Task'}
-        </button>
+        <button type="submit">Add Task</button>
       </form>
 
-      <ul className="task-list">
-        {tasks.map(task => (
-          <li key={task._id} className="task-item">
-            <span>
-              {task.title} — {formatDate(task.dueDate)}
-            </span>
-            <div>
-              <button
-                onClick={() => handleEdit(task)}
-                className="task-edit-button"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDeleteLocal(task._id)}
-                className="task-delete-button"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="task-list">
+        <h3>Tasks</h3>
+        {tasks.length === 0 && <p>No tasks yet.</p>}
+        <ul>
+          {tasks.map((task) => (
+            <li key={task._id}>
+              <span>
+                {task.title} -{' '}
+                {new Date(task.dueDate).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+              <button onClick={() => onDelete(task._id)}>Delete</button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
+
+export default TaskForm;
