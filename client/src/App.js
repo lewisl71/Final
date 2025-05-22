@@ -18,7 +18,7 @@ function App() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/tasks');
+      const response = await fetch('https://task-backend-n7ds.onrender.com/api/tasks');
       const data = await response.json();
       setTasks(data);
     } catch (error) {
@@ -63,7 +63,7 @@ function App() {
     };
   
     try {
-      const response = await fetch('https://task-backend-n7ds.onrender.com', {
+      const response = await fetch('https://task-backend-n7ds.onrender.com/api/tasks', {
         method: 'POST',
         body: JSON.stringify(newTask),
         headers: { 'Content-Type': 'application/json' },
