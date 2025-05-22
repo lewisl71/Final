@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { createTask, updateTask, deleteTask, getTasks } from './services/taskService';
+import { createTask, updateTask, deleteTask } from './services/taskService';
 import './TaskForm.css';
 
-export default function TaskForm({ onAdd, onUpdate, onDelete }) {
-  const [tasks, setTasks] = useState([]);
+export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [editingId, setEditingId] = useState(null);
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
+  // useEffect(() => {
+  //   fetchAll();
+  // }, []);
 
-  const fetchAll = async () => {
-    const data = await getTasks();
-    setTasks(data);
-  };
+  // const fetchAll = async () => {
+  //   const data = await getTasks();
+  //   setTasks(data);
+  // };
 
   const resetForm = () => {
     setTitle('');
