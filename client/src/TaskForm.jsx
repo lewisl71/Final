@@ -28,7 +28,7 @@ export default function TaskForm({ onAdd, onUpdate, onDelete }) {
     if (!title || !dueDate) return;
 
     const due = new Date(dueDate);
-    due.setDate(due.getDate() + 1);
+    due.setDate(due.getDate());
 
     const payload = { 
       title, 
@@ -64,7 +64,7 @@ export default function TaskForm({ onAdd, onUpdate, onDelete }) {
 
   const formatDate = (iso) => {
     const d = new Date(iso);
-    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    return `${d.getMonth() + 1}/${d.getDate() + 1}/${d.getFullYear()}`;
   };
 
   return (

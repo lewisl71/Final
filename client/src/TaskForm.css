@@ -19,7 +19,7 @@ text-align: center;
 
 
 .task-form-input {
-width: 100%;
+width: 95.5%;
 padding: 0.75rem;
 margin-bottom: 1rem;
 border: 1px solid #b0bec5;
@@ -35,7 +35,7 @@ box-shadow: 0 0 0 2px rgba(120, 144, 156, 0.3);
 
 
 .task-form-button {
-width: 100%;
+width: 99.8%;
 padding: 0.75rem;
 background-color: #607d8b;
 color: white;
@@ -95,3 +95,4 @@ background: #c62828;
 .task-edit-button:hover {
     background-color: #388e3c;
 }
+
