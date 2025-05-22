@@ -9,33 +9,14 @@ export default function TaskCalendar({ tasks, onDateClick, onDelete }) {
   const events = tasks.map((task) => ({
     id: task._id,
     title: task.title,
-    date: new Date(task.dueDate).toISOString().split('T')[0], // Ensure correct format
+    date: new Date(task.dueDate).toISOString().split('T')[0],
   }));
 
-  // Handle user clicking on a date
-  const handleDateClick = async (info) => {
+
+  const handleDateClick = (info) => {
     const title = prompt('Enter task title:');
     if (!title) return;
-
-    const newTask = {
-      title,
-      dueDate: info.dateStr, // Already ISO string yyyy-mm-dd
-    };
-
-    try {
-      const response = await fetch('https://task-backend-n7ds.onrender.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask),
-      });
-
-      const data = await response.json();
-
-     
-      onDateClick(data);
-    } catch (err) {
-      console.error('Error creating task from calendar:', err);
-    }
+    onDateClick(info.dateStr, title); // Call the prop with date and title
   };
 
   return (
@@ -46,12 +27,7 @@ export default function TaskCalendar({ tasks, onDateClick, onDelete }) {
         initialView="dayGridMonth"
         events={events}
         timeZone="local"
-        dateClick={(info) => {
-          const title = prompt('Enter task title:');
-          if (!title) return;
-          onDateClick(info.dateStr, title); // Pass date and title to App
-        }}
-        
+        dateClick={handleDateClick} 
         eventClick={(info) => {
           const confirmDelete = window.confirm(`Delete task: "${info.event.title}"?`);
           if (confirmDelete) {
