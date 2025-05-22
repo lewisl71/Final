@@ -37,10 +37,15 @@ function App() {
     setView('login');
   };
 
-  const handleAddTask = (newTask) => {
-    console.log('Adding new task:', newTask);
-    setTasks((prev) => [...prev, newTask]);
+  const handleAddTask = async (newTask) => {
+    try {
+      const created = await createTask(newTask);
+      setTasks((prev) => [...prev, created]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+    }
   };
+  
 
   const handleDeleteTask = async (id) => {
     try {
