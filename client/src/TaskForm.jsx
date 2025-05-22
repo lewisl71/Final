@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createTask, updateTask, deleteTask } from './services/taskService';
 import './TaskForm.css';
 
@@ -6,15 +6,6 @@ export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [editingId, setEditingId] = useState(null);
-
-  // useEffect(() => {
-  //   fetchAll();
-  // }, []);
-
-  // const fetchAll = async () => {
-  //   const data = await getTasks();
-  //   setTasks(data);
-  // };
 
   const resetForm = () => {
     setTitle('');
@@ -29,9 +20,9 @@ export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
     const due = new Date(dueDate);
     due.setDate(due.getDate());
 
-    const payload = { 
-      title, 
-      dueDate: due.toISOString() 
+    const payload = {
+      title,
+      dueDate: due.toISOString(),
     };
 
     try {
@@ -43,7 +34,6 @@ export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
         onAdd(created);
       }
       resetForm();
-      fetchAll();
     } catch (err) {
       console.error('Error saving task:', err);
     }
@@ -56,14 +46,17 @@ export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
   };
 
   const handleDeleteLocal = async (id) => {
-    await deleteTask(id);
-    onDelete(id);
-    fetchAll();
+    try {
+      await deleteTask(id);
+      onDelete(id);
+    } catch (err) {
+      console.error('Error deleting task:', err);
+    }
   };
 
   const formatDate = (iso) => {
     const d = new Date(iso);
-    return `${d.getMonth() + 1}/${d.getDate() + 1}/${d.getFullYear()}`;
+    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
   };
 
   return (
@@ -115,5 +108,5 @@ export default function TaskForm({ tasks, onAdd, onUpdate, onDelete }) {
         ))}
       </ul>
     </div>
-);
+  );
 }
