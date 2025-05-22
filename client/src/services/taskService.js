@@ -1,4 +1,5 @@
 import axios from 'axios';
+axios.defaults.baseURL = 'https://task-backend-n7ds.onrender.com/api/tasks';
 
 export const getTasks = async () => {
     const response = await axios.get('/api/tasks');
