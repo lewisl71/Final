@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './TaskForm.css';
 
 function TaskForm({ tasks, onAdd, onDelete }) {
   const [title, setTitle] = useState('');
@@ -12,19 +11,17 @@ function TaskForm({ tasks, onAdd, onDelete }) {
       return;
     }
 
-
     const date = new Date(dueDate);
-    date.setUTCHours(12, 0, 0, 0); // prevent date shifting due to timezone
-
+    date.setUTCHours(12, 0, 0, 0); 
     const newTask = {
       title,
       dueDate: date.toISOString(),
     };
 
     try {
-      console.log('📤Submitting task from form:', newTask);
-      const createdTask = await onAdd(newTask); // capture return if needed
-      console.log(' Task added:', createdTask);
+      console.log(' Submitting task from form:', newTask);
+      const createdTask = await onAdd(newTask);
+      console.log('Task added:', createdTask);
       setTitle('');
       setDueDate('');
     } catch (error) {
@@ -33,28 +30,31 @@ function TaskForm({ tasks, onAdd, onDelete }) {
   };
 
   return (
-    <div className="task-form">
+    <div style={styles.container}>
       <form onSubmit={handleSubmit}>
+        <h3 style={styles.title}>Add a New Task</h3>
         <input
           type="text"
           placeholder="Task Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          style={styles.input}
         />
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
+          style={styles.input}
         />
-        <button type="submit">Add Task</button>
+        <button type="submit" style={styles.button}>Add Task</button>
       </form>
 
-      <div className="task-list">
-        <h3>Tasks</h3>
+      <div style={styles.taskList}>
+        <h3 style={styles.title}>Tasks</h3>
         {tasks.length === 0 && <p>No tasks yet.</p>}
-        <ul>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
           {tasks.map((task) => (
-            <li key={task._id}>
+            <li key={task._id} style={styles.taskItem}>
               <span>
                 {task.title} -{' '}
                 {new Date(task.dueDate).toLocaleDateString(undefined, {
@@ -63,7 +63,9 @@ function TaskForm({ tasks, onAdd, onDelete }) {
                   day: 'numeric',
                 })}
               </span>
-              <button onClick={() => onDelete(task._id)}>Delete</button>
+              <button onClick={() => onDelete(task._id)} style={styles.deleteButton}>
+                Delete
+              </button>
             </li>
           ))}
         </ul>
@@ -72,4 +74,63 @@ function TaskForm({ tasks, onAdd, onDelete }) {
   );
 }
 
+const styles = {
+  container: {
+    backgroundColor: '#f0f0f0',
+    padding: '2rem',
+    borderRadius: '1rem',
+    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+    maxWidth: '600px',
+    margin: '2rem auto',
+    fontFamily: "'Helvetica Neue', Arial, sans-serif",
+  },
+  title: {
+    fontSize: '1.5rem',
+    color: '#37474f',
+    marginBottom: '1rem',
+    textAlign: 'center',
+  },
+  input: {
+    width: '95.5%',
+    padding: '0.75rem',
+    marginBottom: '1rem',
+    border: '1px solid #b0bec5',
+    borderRadius: '0.5rem',
+    fontSize: '1rem',
+  },
+  button: {
+    width: '99.8%',
+    padding: '0.75rem',
+    backgroundColor: '#607d8b',
+    color: 'white',
+    border: 'none',
+    borderRadius: '0.5rem',
+    fontSize: '1rem',
+    cursor: 'pointer',
+  },
+  taskList: {
+    marginTop: '2rem',
+  },
+  taskItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#e0f7fa',
+    padding: '0.75rem 1rem',
+    marginBottom: '0.75rem',
+    borderRadius: '0.5rem',
+    color: '#37474f',
+  },
+  deleteButton: {
+    background: '#ef5350',
+    color: 'white',
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '0.5rem',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+  },
+};
+
 export default TaskForm;
+
