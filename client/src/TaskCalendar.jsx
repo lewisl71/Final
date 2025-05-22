@@ -23,7 +23,7 @@ export default function TaskCalendar({ tasks, onDateClick, onDelete }) {
     };
 
     try {
-      const response = await fetch('http://localhost:5001/api/tasks', {
+      const response = await fetch('https://task-backend-n7ds.onrender.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask),

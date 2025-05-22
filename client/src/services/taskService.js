@@ -1,5 +1,4 @@
 import axios from 'axios';
-const API = axios.create({ baseURL: 'http://localhost:5001/api/tasks' });
 
 export const getTasks = async () => {
     const response = await axios.get('/api/tasks');
